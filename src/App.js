@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 
 const QuizContainer = styled.div`
@@ -90,42 +90,55 @@ function App() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const questions = [
-    {
-      question: "Is Coding Ninjas the best online learning platform?",
-      answers: [
-        { option: "For Sure!", answer: true },
-        { option: "No, not at all.", answer: false },
-      ],
-    },
-    {
-      question: "Is Coding Ninjas the best learning platform?",
-      answers: [
-        { option: "Hard Work", answer: false },
-        { option: "Smart Work", answer: true },
-      ],
-    },
-    {
-      question: "Complete the phrase: Time and ___ wait for none.",
-      answers: [
-        { option: "Batman", answer: false },
-        { option: "Tide", answer: true },
-      ],
-    },
-  ];
+  // Define the fetchRandomQuizQuestions function outside of useEffect
+  async function fetchRandomQuizQuestions() {
+    try {
+      const response = await fetch('https://opentdb.com/api.php?amount=16&category=18&difficulty=medium&type=multiple');
+      if (!response.ok) {
+        throw new Error('Failed to fetch quiz questions');
+      }
+      const data = await response.json();
+      setQuestions(data.results); // Corrected to use data.results
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    // Call fetchRandomQuizQuestions within useEffect
+    fetchRandomQuizQuestions();
+  }, []);
 
   const handleAnswerClick = (answer) => {
-    const isCorrect = questions[currentQuestion].answers.find(
-      (ans) => ans.option === answer
-    ).answer;
+    // Check if questions[currentQuestion] is defined
+    if (questions[currentQuestion]) {
+      const isCorrect =
+        questions[currentQuestion].correct_answer === answer;
 
-    if (isCorrect && score < 3) {
-      setScore(score + 1);
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+
+      setQuestionsAnswered(questionsAnswered + 1);
+      nextQuestion();
     }
+  };
 
-    setQuestionsAnswered(questionsAnswered + 1);
-    nextQuestion();
+  const shuffleArray = (array) => {
+    const shuffledArray = [...array];
+    for (let i = shuffledArray.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledArray[i], shuffledArray[j]] = [
+        shuffledArray[j],
+        shuffledArray[i],
+      ];
+    }
+    return shuffledArray;
   };
 
   const nextQuestion = () => {
@@ -145,7 +158,7 @@ function App() {
       // Quiz submitted
       alert("Congratulations on submitting the Quiz!");
     } else {
-      alert("Please answer all questions before submitting.");
+      alert("Nice try, Better luck next time");
     }
   };
 
@@ -153,21 +166,36 @@ function App() {
     setCurrentQuestion(0); // Reset the current question to the first question
     setScore(0); // Reset the score to 0
     setQuestionsAnswered(0); // Reset the questions answered count to 0
+    setLoading(true);
+    fetchRandomQuizQuestions(); // Fetch new random quiz questions
   };
 
   return (
     <QuizContainer>
       <h1>Quiz App</h1>
-      <QuestionText>{questions[currentQuestion].question}</QuestionText>
-      {questions[currentQuestion].answers.map((answer) => (
-        <AnswerButton
-          key={answer.option}
-          onClick={() => handleAnswerClick(answer.option)}
-          disabled={questionsAnswered >= 3} // Disable answer buttons after 3 questions answered
-        >
-          {answer.option}
-        </AnswerButton>
-      ))}
+      {loading ? (
+        <p>Loading quiz questions...</p>
+      ) : questions.length > 0 ? (
+        <>
+          <QuestionText>
+            {questions[currentQuestion].question}
+          </QuestionText>
+          {shuffleArray([
+            ...questions[currentQuestion].incorrect_answers,
+            questions[currentQuestion].correct_answer,
+          ]).map((answer) => (
+            <AnswerButton
+              key={answer}
+              onClick={() => handleAnswerClick(answer)}
+              disabled={questionsAnswered >= questions.length}
+            >
+              {answer}
+            </AnswerButton>
+          ))}
+        </>
+      ) : (
+        <p>No quiz questions available.</p>
+      )}
       <div>
         <span id="user-score">{score}</span>
         <span> / </span>
@@ -175,18 +203,22 @@ function App() {
       </div>
       <NavigationButtons>
         <RestartButton onClick={restartQuiz}>Restart</RestartButton>
-        <PrevButton onClick={prevQuestion} disabled={currentQuestion === 0}>
+        <PrevButton
+          onClick={prevQuestion}
+          disabled={currentQuestion === 0}
+        >
           Previous
         </PrevButton>
         <NextButton
-          onClick={nextQuestion}
+          onClick={() => {
+            nextQuestion();
+            fetchRandomQuizQuestions(); // Fetch new questions when moving to the next question
+          }}
           disabled={currentQuestion === questions.length - 1}
         >
           Next
         </NextButton>
-        <SubmitButton onClick={submitQuiz}>
-          Submit
-        </SubmitButton>
+        <SubmitButton onClick={submitQuiz}>Submit</SubmitButton>
       </NavigationButtons>
     </QuizContainer>
   );
