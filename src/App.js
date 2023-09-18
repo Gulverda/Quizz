@@ -96,7 +96,7 @@ function App() {
   // Define the fetchRandomQuizQuestions function outside of useEffect
   async function fetchRandomQuizQuestions() {
     try {
-      const response = await fetch('https://opentdb.com/api.php?amount=16&category=18&difficulty=medium&type=multiple');
+      const response = await fetch('https://opentdb.com/api.php?amount=12&category=18&difficulty=medium&type=multiple');
       if (!response.ok) {
         throw new Error('Failed to fetch quiz questions');
       }
