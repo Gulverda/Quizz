@@ -38,7 +38,7 @@ const RestartButton = styled.button`
   color: #fff;
   border: none;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 15px;
 
   &:hover {
     background-color: #555;
@@ -53,7 +53,7 @@ const PrevButton = styled.button`
   color: #fff;
   border: none;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 15px;
 
   &:hover {
     background-color: #46b8da;
@@ -68,7 +68,7 @@ const NextButton = styled.button`
   color: #fff;
   border: none;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 15px;
 
   &:hover {
     background-color: #46b8da;
@@ -83,7 +83,7 @@ const SubmitButton = styled.button`
   color: #fff;
   border: none;
   cursor: pointer;
-  border-radius: 20px;
+  border-radius: 15px;
 
   &:hover {
     background-color: #449d44;
